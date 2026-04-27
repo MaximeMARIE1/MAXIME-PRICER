@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SKEMA Derivatives Pricer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="wordmark" aria-label="SKEMA Business School">
+          <span class="wordmark-main">sk<span>e</span>ma</span>
+          <span class="wordmark-sub">business school</span>
+        </div>
+
+        <nav class="product-tabs" aria-label="Produit">
+          <button class="product-tab">Skema Pricer</button>
+          <button class="product-tab active">Derivatives Pricer</button>
+        </nav>
+
+        <label class="select-shell full">
+          <span class="sr-only">Instrument</span>
+          <select id="instrument">
+            <option>Options</option>
+          </select>
+        </label>
+
+        <div class="divider"></div>
+
+        <section class="sidebar-section">
+          <div class="sidebar-heading">
+            <h1>Parameters</h1>
+            <p>Market &amp; Contract</p>
+          </div>
+
+          <div class="control-stack">
+            <label class="field span-2">
+              <span>Spot (S)</span>
+              <span class="stepper">
+                <input id="spot" inputmode="decimal" value="100,00" data-step="1">
+                <button type="button" class="step-btn" data-target="spot" data-direction="-1" aria-label="Diminuer spot">-</button>
+                <button type="button" class="step-btn" data-target="spot" data-direction="1" aria-label="Augmenter spot">+</button>
+              </span>
+            </label>
+
+            <label class="field span-2">
+              <span>Strike (K)</span>
+              <span class="stepper">
+                <input id="strike" inputmode="decimal" value="100,00" data-step="1">
+                <button type="button" class="step-btn" data-target="strike" data-direction="-1" aria-label="Diminuer strike">-</button>
+                <button type="button" class="step-btn" data-target="strike" data-direction="1" aria-label="Augmenter strike">+</button>
+              </span>
+            </label>
+
+            <label class="field span-2">
+              <span>Maturity</span>
+              <input id="maturity" inputmode="numeric" value="2027/04/27">
+            </label>
+            <p class="tenor span-2">T = <span id="tenor">1.0000</span> y</p>
+
+            <label class="field">
+              <span>r %</span>
+              <input id="rate" inputmode="decimal" value="5,00" data-step="0.25">
+            </label>
+            <label class="field">
+              <span>q %</span>
+              <input id="dividend" inputmode="decimal" value="2,00" data-step="0.25">
+            </label>
+
+            <label class="field">
+              <span>repo %</span>
+              <input id="repo" inputmode="decimal" value="0,00" data-step="0.25">
+            </label>
+            <label class="field">
+              <span>sigma %</span>
+              <input id="vol" inputmode="decimal" value="20,00" data-step="1">
+            </label>
+
+            <label class="field muted-label">
+              <span>Position</span>
+              <input id="position" inputmode="numeric" value="1" data-step="1">
+            </label>
+
+            <label class="field">
+              <span>Lots</span>
+              <input id="lots" inputmode="decimal" value="1,0" data-step="1">
+            </label>
+            <label class="field">
+              <span>Mult.</span>
+              <input id="multiplier" inputmode="numeric" value="100" data-step="1">
+            </label>
+
+            <label class="field">
+              <span>Tick</span>
+              <input id="tick" inputmode="decimal" value="0,0100" data-step="0.01">
+            </label>
+            <label class="field">
+              <span>Type</span>
+              <span class="select-shell compact">
+                <select id="optionType">
+                  <option value="call">call</option>
+                  <option value="put">put</option>
+                </select>
+              </span>
+            </label>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <button class="menu-dots" type="button" aria-label="Menu">...</button>
+        </header>
+
+        <div class="content">
+          <section class="section">
+            <h2 class="section-title">Pricing</h2>
+            <div class="kpi-grid pricing-grid">
+              <article class="metric-card">
+                <span>BS Price</span>
+                <strong id="bsPrice">0.0000</strong>
+              </article>
+              <article class="metric-card">
+                <span>Forward</span>
+                <strong id="forward">0.0000</strong>
+              </article>
+              <article class="metric-card">
+                <span>Cash Delta</span>
+                <strong id="cashDelta">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Delta Hedge</span>
+                <strong><span id="deltaHedge">0.0</span> shrs</strong>
+              </article>
+              <article class="metric-card">
+                <span>&Delta; T+1D</span>
+                <strong><span id="deltaDecay">0.00</span> shrs/day</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Cash Greeks</h2>
+            <div class="kpi-grid greek-grid">
+              <article class="metric-card">
+                <span>Gamma / 1%</span>
+                <strong id="cashGamma">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Theta / Day</span>
+                <strong id="cashTheta">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Vega / 1%</span>
+                <strong id="cashVega">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Charm / Day</span>
+                <strong id="cashCharm">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Vanna / 1%</span>
+                <strong id="cashVanna">0.00</strong>
+              </article>
+              <article class="metric-card">
+                <span>Rho / 1%</span>
+                <strong id="cashRho">0.00</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="accordion-stack">
+            <details class="accordion" open>
+              <summary>Gamma PnL Calculator</summary>
+              <div class="accordion-grid">
+                <label class="field white-field">
+                  <span>Spot move %</span>
+                  <span class="stepper">
+                    <input id="spotMove" inputmode="decimal" value="1,00" data-step="0.25">
+                    <button type="button" class="step-btn" data-target="spotMove" data-direction="-1" aria-label="Diminuer variation spot">-</button>
+                    <button type="button" class="step-btn" data-target="spotMove" data-direction="1" aria-label="Augmenter variation spot">+</button>
+                  </span>
+                </label>
+                <article class="metric-card">
+                  <span>New &Delta; Cash</span>
+                  <strong id="newDeltaCash">0</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Gamma PnL</span>
+                  <strong id="gammaPnl">0.00</strong>
+                </article>
+                <label class="field white-field">
+                  <span>IV %</span>
+                  <span class="stepper">
+                    <input id="ivMove" inputmode="decimal" value="20,0" data-step="1">
+                    <button type="button" class="step-btn" data-target="ivMove" data-direction="-1" aria-label="Diminuer volatilite">-</button>
+                    <button type="button" class="step-btn" data-target="ivMove" data-direction="1" aria-label="Augmenter volatilite">+</button>
+                  </span>
+                </label>
+                <article class="metric-card">
+                  <span>Daily Move</span>
+                  <strong id="dailyMove">0.00%</strong>
+                </article>
+              </div>
+            </details>
+
+            <details class="accordion">
+              <summary>Trading Shortcuts</summary>
+              <div class="shortcut-grid">
+                <article>
+                  <span>Tick Value</span>
+                  <strong id="tickValue">0.00</strong>
+                </article>
+                <article>
+                  <span>Premium Cash</span>
+                  <strong id="premiumCash">0.00</strong>
+                </article>
+                <article>
+                  <span>Break Even</span>
+                  <strong id="breakEven">0.00</strong>
+                </article>
+              </div>
+            </details>
+
+            <details class="accordion">
+              <summary>Quick Calc &mdash; Gamma &rarr; Theta Bill</summary>
+              <div class="shortcut-grid">
+                <article>
+                  <span>Daily Theta</span>
+                  <strong id="thetaBill">0.00</strong>
+                </article>
+                <article>
+                  <span>Move to Cover</span>
+                  <strong id="moveToCover">0.00%</strong>
+                </article>
+                <article>
+                  <span>Vega Shock +1%</span>
+                  <strong id="vegaShock">0.00</strong>
+                </article>
+              </div>
+            </details>
+
+            <details class="accordion">
+              <summary>Early Exercise Analysis &mdash; American Style</summary>
+              <div class="exercise-line">
+                <strong id="exerciseSignal">Hold</strong>
+                <span id="exerciseDetail">No immediate exercise premium detected.</span>
+              </div>
+            </details>
+          </section>
+
+          <section class="section split-section">
+            <div>
+              <h2 class="section-title">Unit Greeks</h2>
+              <table class="greeks-table">
+                <thead>
+                  <tr>
+                    <th>Greek</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Delta</td>
+                    <td id="unitDelta">0.000000</td>
+                  </tr>
+                  <tr>
+                    <td>Gamma</td>
+                    <td id="unitGamma">0.000000</td>
+                  </tr>
+                  <tr>
+                    <td>Vega /1%</td>
+                    <td id="unitVega">0.000000</td>
+                  </tr>
+                  <tr>
+                    <td>Theta /day</td>
+                    <td id="unitTheta">0.000000</td>
+                  </tr>
+                  <tr>
+                    <td>Rho /1%</td>
+                    <td id="unitRho">0.000000</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="section charts-section">
+            <h2 class="section-title">Charts</h2>
+            <div class="chart-control-grid">
+              <label>
+                <span>vs Spot</span>
+                <select id="spotChartMetric">
+                  <option value="price">Price</option>
+                  <option value="delta">Delta</option>
+                  <option value="gamma">Gamma</option>
+                  <option value="vega">Vega</option>
+                  <option value="theta">Theta</option>
+                  <option value="rho">Rho</option>
+                </select>
+              </label>
+              <label>
+                <span>Chart</span>
+                <select id="axisChartMetric">
+                  <option value="price">Price</option>
+                  <option value="delta">Delta</option>
+                  <option value="gamma">Gamma</option>
+                  <option value="vega">Vega</option>
+                </select>
+              </label>
+              <label>
+                <span>vs</span>
+                <select id="axisChartVariable">
+                  <option value="vol">Vol</option>
+                  <option value="time">Time</option>
+                  <option value="strike">Strike</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="chart-grid">
+              <article class="chart-card">
+                <h3 id="spotChartTitle">Price vs Spot</h3>
+                <div class="chart-box">
+                  <canvas id="priceSpotChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3 id="axisChartTitle">Price vs Vol</h3>
+                <div class="chart-box">
+                  <canvas id="axisChart"></canvas>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="section charts-section">
+            <h2 class="section-title">Unit Greeks Sensitivity &mdash; Impact of Volatility &amp; Time to Maturity</h2>
+            <div class="chart-grid">
+              <article class="chart-card">
+                <h3>Delta vs Spot &mdash; by Volatility</h3>
+                <div class="chart-box">
+                  <canvas id="deltaVolChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3>Delta vs Time &mdash; by Moneyness</h3>
+                <div class="chart-box">
+                  <canvas id="deltaTimeChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3>Gamma vs Spot &mdash; by Volatility</h3>
+                <div class="chart-box">
+                  <canvas id="gammaVolChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3>Gamma vs Time &mdash; by Moneyness</h3>
+                <div class="chart-box">
+                  <canvas id="gammaTimeChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3>Vega vs Spot &mdash; by Volatility</h3>
+                <div class="chart-box">
+                  <canvas id="vegaVolChart"></canvas>
+                </div>
+              </article>
+              <article class="chart-card">
+                <h3>Vega vs Time &mdash; by Moneyness</h3>
+                <div class="chart-box">
+                  <canvas id="vegaTimeChart"></canvas>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

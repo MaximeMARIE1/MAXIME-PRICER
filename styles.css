@@ -164,6 +164,12 @@ button {
   font-size: 12px;
 }
 
+.select-shell.full select:focus,
+.select-shell.full select:focus-visible {
+  border-color: #d62828;
+  box-shadow: 0 0 0 1px #d62828;
+}
+
 .select-shell.compact select {
   height: 42px;
   padding: 0 40px 0 14px;

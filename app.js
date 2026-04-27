@@ -54,11 +54,11 @@
   const els = {};
   const charts = {};
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  const BLUE = "#287fe8";
-  const RED = "#ff3333";
-  const GREEN = "#2ca36a";
-  const PURPLE = "#8157e8";
-  const GRID = "rgba(6, 17, 37, 0.09)";
+  const BLUE = "#12436C";
+  const RED = "#D1A08E";
+  const GREEN = "#A9D08E";
+  const PURPLE = "#595959";
+  const GRID = "rgba(89, 89, 89, 0.16)";
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -70,7 +70,7 @@
     if (window.Chart) {
       Chart.register(atmLinePlugin);
       Chart.defaults.font.family = 'Inter, "Segoe UI", Roboto, Arial, sans-serif';
-      Chart.defaults.color = "#607089";
+      Chart.defaults.color = "#595959";
     }
 
     document.querySelectorAll("input, select").forEach((input) => {
@@ -403,13 +403,13 @@
             title: {
               display: Boolean(extra.xTitle),
               text: extra.xTitle,
-              color: "#6e7480",
+              color: "#595959",
               font: { size: 12, weight: "500" }
             },
             grid: { color: "rgba(0, 0, 0, 0)" },
             ticks: {
               maxTicksLimit: 8,
-              color: "#607089",
+              color: "#595959",
               callback: (value) => trimNumber(value)
             }
           },
@@ -419,10 +419,10 @@
               text: extra.yTitle || ""
             },
             grid: { color: GRID },
-            border: { color: "#d7dce3" },
+            border: { color: "#DBDBDB" },
             ticks: {
               maxTicksLimit: 6,
-              color: "#607089",
+              color: "#595959",
               callback: (value) => trimNumber(value)
             }
           }
@@ -434,7 +434,7 @@
               boxWidth: 28,
               boxHeight: 2,
               usePointStyle: false,
-              color: "#061125",
+              color: "#021A32",
               font: { size: 11 }
             }
           },
@@ -609,13 +609,13 @@
       ctx.save();
       ctx.beginPath();
       ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = "rgba(40, 127, 232, 0.55)";
+      ctx.strokeStyle = "rgba(18, 67, 108, 0.46)";
       ctx.lineWidth = 1;
       ctx.moveTo(x, yScale.top);
       ctx.lineTo(x, yScale.bottom);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#8aa5c9";
+      ctx.fillStyle = "#12436C";
       ctx.font = "11px Segoe UI, Arial, sans-serif";
       ctx.fillText(options.label || "ATM", x + 6, yScale.top + 14);
       ctx.restore();

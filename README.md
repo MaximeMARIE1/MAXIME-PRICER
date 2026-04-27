@@ -1,6 +1,8 @@
-# SKEMA Derivatives Pricer
+# Kota Investment Club Derivatives Pricer
 
 Application web statique pour pricer des options europeennes avec Black-Scholes.
+
+Interface personnalisee avec la palette Kota Investment Club.
 
 ## Contenu
 

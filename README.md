@@ -1,8 +1,8 @@
-# Kota Investment Club Derivatives Pricer
+# Maxime MARIE Derivatives Pricer
 
 Application web statique pour pricer des options europeennes avec Black-Scholes.
 
-Interface personnalisee avec la palette Kota Investment Club.
+Interface personnalisee avec une palette desk bleu nuit.
 
 ## Contenu
 

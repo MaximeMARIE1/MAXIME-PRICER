@@ -25,13 +25,12 @@
 
         <label class="select-shell full">
           <span class="sr-only">Instrument</span>
-          <select id="instrument">
-            <option>Options</option>
-            <option>Bonds</option>
-            <option>Turbo</option>
-            <option>Discount Cert.</option>
-            <option>Bonus Cert.</option>
-            <option>Interview</option>
+          <select id="instrumentSelect">
+            <option value="options">Options</option>
+            <option value="bonds">Bonds</option>
+            <option value="turbo">Turbo</option>
+            <option value="discount">Discount Cert.</option>
+            <option value="bonus">Bonus Cert.</option>
           </select>
         </label>
 
@@ -128,7 +127,9 @@
           <button class="menu-dots" type="button" aria-label="Menu">...</button>
         </header>
 
-        <div class="content">
+        <div class="content" id="instrumentContent">
+          <!-- OPTIONS INSTRUMENT -->
+          <div class="instrument-section" data-instrument="options">
           <section class="desk-title">
             <h1>Maxime MARIE - Derivatives Pricer</h1>
             <p>European options desk</p>
@@ -396,6 +397,220 @@
               </article>
             </div>
           </section>
+          </div>
+          <!-- END OPTIONS INSTRUMENT -->
+
+          <!-- BONDS INSTRUMENT -->
+          <div class="instrument-section" data-instrument="bonds" style="display: none;">
+            <section class="desk-title">
+              <h1>Bond Pricing Calculator</h1>
+              <p>Fixed income pricing & analytics</p>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Bond Pricing</h2>
+              <div class="kpi-grid pricing-grid">
+                <article class="metric-card">
+                  <span>Dirty Price</span>
+                  <strong id="dirtyPrice">100.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Clean Price</span>
+                  <strong id="cleanPrice">100.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Accrued Interest</span>
+                  <strong id="accruedInterest">0.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>YTM</span>
+                  <strong id="ytm">0.00%</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Modified Duration</span>
+                  <strong id="modDuration">0.00</strong>
+                </article>
+              </div>
+            </section>
+
+            <section class="section charts-section">
+              <h2 class="section-title">Bond Analysis</h2>
+              <div class="chart-grid">
+                <article class="chart-card">
+                  <h3>Bond Price vs YTM</h3>
+                  <div class="chart-box">
+                    <canvas id="bondPriceChart"></canvas>
+                  </div>
+                </article>
+                <article class="chart-card">
+                  <h3>Present Value of Cash Flows</h3>
+                  <div class="chart-box">
+                    <canvas id="cashFlowChart"></canvas>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+          <!-- END BONDS INSTRUMENT -->
+
+          <!-- TURBO INSTRUMENT -->
+          <div class="instrument-section" data-instrument="turbo" style="display: none;">
+            <section class="desk-title">
+              <h1>Turbo Warrants Pricer</h1>
+              <p>Leveraged open-end products</p>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Turbo Pricing</h2>
+              <div class="kpi-grid pricing-grid">
+                <article class="metric-card">
+                  <span>Turbo Price</span>
+                  <strong id="turboPrice">2.00000</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Leverage</span>
+                  <strong id="leverage">5.00x</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Distance to Barrier</span>
+                  <strong id="distanceBarrier">10.00%</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Daily Financing Cost</span>
+                  <strong id="dailyFinancing">0.0043</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Position Exposure</span>
+                  <strong id="positionExposure">500.00</strong>
+                </article>
+              </div>
+            </section>
+
+            <section class="section charts-section">
+              <h2 class="section-title">Turbo Analysis</h2>
+              <div class="chart-grid">
+                <article class="chart-card">
+                  <h3>Turbo Price Evolution (Spot drift over time)</h3>
+                  <div class="chart-box">
+                    <canvas id="turboPriceChart"></canvas>
+                  </div>
+                </article>
+                <article class="chart-card">
+                  <h3>Turbo Long Payoff</h3>
+                  <div class="chart-box">
+                    <canvas id="turboPayoffChart"></canvas>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+          <!-- END TURBO INSTRUMENT -->
+
+          <!-- DISCOUNT CERTIFICATE INSTRUMENT -->
+          <div class="instrument-section" data-instrument="discount" style="display: none;">
+            <section class="desk-title">
+              <h1>Discount Certificate Pricer</h1>
+              <p>Capital protection with downside buffer</p>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Discount Certificate Metrics</h2>
+              <div class="kpi-grid pricing-grid">
+                <article class="metric-card">
+                  <span>Certificate Price</span>
+                  <strong id="discountCertPrice">92.4513</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Discount</span>
+                  <strong id="discountPercentage">7.75%</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Max Payout</span>
+                  <strong id="maxPayout">113.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Breakeven</span>
+                  <strong id="discountBreakeven">82.50</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Max Return</span>
+                  <strong id="maxReturn">14.49%</strong>
+                </article>
+              </div>
+            </section>
+
+            <section class="section charts-section">
+              <h2 class="section-title">Discount Certificate Analysis</h2>
+              <div class="chart-grid">
+                <article class="chart-card">
+                  <h3>Payoff at Maturity</h3>
+                  <div class="chart-box">
+                    <canvas id="discountPayoffChart"></canvas>
+                  </div>
+                </article>
+                <article class="chart-card">
+                  <h3>Profit & Loss at Maturity</h3>
+                  <div class="chart-box">
+                    <canvas id="discountProfitChart"></canvas>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+          <!-- END DISCOUNT CERTIFICATE INSTRUMENT -->
+
+          <!-- BONUS CERTIFICATE INSTRUMENT -->
+          <div class="instrument-section" data-instrument="bonus" style="display: none;">
+            <section class="desk-title">
+              <h1>Bonus Certificate Pricer</h1>
+              <p>Leveraged upside with barrier protection</p>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Bonus Certificate Metrics</h2>
+              <div class="kpi-grid pricing-grid">
+                <article class="metric-card">
+                  <span>Certificate Price</span>
+                  <strong id="bonusCertPrice">114.4461</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Bonus Level</span>
+                  <strong id="bonusLevel">125.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Barrier</span>
+                  <strong id="bonusBarrier">75.00</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Max Profit</span>
+                  <strong id="bonusMaxProfit">22.39%</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Protected Below</span>
+                  <strong id="bonusProtection">75.00%</strong>
+                </article>
+              </div>
+            </section>
+
+            <section class="section charts-section">
+              <h2 class="section-title">Bonus Certificate Analysis</h2>
+              <div class="chart-grid">
+                <article class="chart-card">
+                  <h3>Payoff at Maturity</h3>
+                  <div class="chart-box">
+                    <canvas id="bonusPayoffChart"></canvas>
+                  </div>
+                </article>
+                <article class="chart-card">
+                  <h3>Profit & Loss at Maturity</h3>
+                  <div class="chart-box">
+                    <canvas id="bonusProfitChart"></canvas>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+          <!-- END BONUS CERTIFICATE INSTRUMENT -->
         </div>
       </main>
     </div>

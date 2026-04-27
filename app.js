@@ -1,58 +1,46 @@
 (function () {
   "use strict";
 
-  const ids = [
-    "spot",
-    "strike",
-    "maturity",
-    "rate",
-    "dividend",
-    "repo",
-    "vol",
-    "position",
-    "lots",
-    "multiplier",
-    "tick",
-    "optionType",
-    "spotMove",
-    "ivMove",
-    "spotChartMetric",
-    "axisChartMetric",
-    "axisChartVariable",
-    "tenor",
-    "bsPrice",
-    "forward",
-    "cashDelta",
-    "deltaHedge",
-    "deltaDecay",
-    "cashGamma",
-    "cashTheta",
-    "cashVega",
-    "cashCharm",
-    "cashVanna",
-    "cashRho",
-    "newDeltaCash",
-    "gammaPnl",
-    "dailyMove",
-    "tickValue",
-    "premiumCash",
-    "breakEven",
-    "thetaBill",
-    "moveToCover",
-    "vegaShock",
-    "exerciseSignal",
-    "exerciseDetail",
-    "unitDelta",
-    "unitGamma",
-    "unitVega",
-    "unitTheta",
-    "unitRho",
-    "spotChartTitle",
-    "axisChartTitle"
+  // Options instrument IDs
+  const optionsIds = [
+    "spot", "strike", "maturity", "rate", "dividend", "repo", "vol", "position",
+    "lots", "multiplier", "tick", "optionType", "spotMove", "ivMove",
+    "spotChartMetric", "axisChartMetric", "axisChartVariable", "tenor",
+    "bsPrice", "forward", "cashDelta", "deltaHedge", "deltaDecay",
+    "cashGamma", "cashTheta", "cashVega", "cashCharm", "cashVanna", "cashRho",
+    "newDeltaCash", "gammaPnl", "dailyMove", "tickValue", "premiumCash",
+    "breakEven", "thetaBill", "moveToCover", "vegaShock", "exerciseSignal",
+    "exerciseDetail", "unitDelta", "unitGamma", "unitVega", "unitTheta", "unitRho",
+    "spotChartTitle", "axisChartTitle"
+  ];
+
+  // Bonds instrument IDs
+  const bondsIds = [
+    "spot", "rate", "maturity", "multiplier",
+    "dirtyPrice", "cleanPrice", "accruedInterest", "ytm", "modDuration"
+  ];
+
+  // Turbo instrument IDs
+  const turboIds = [
+    "spot", "strike", "maturity", "rate", "dividend", "repo", "vol", "position",
+    "lots", "multiplier", "turboPrice", "leverage", "distanceBarrier",
+    "dailyFinancing", "positionExposure"
+  ];
+
+  // Certificate IDs
+  const discountIds = [
+    "spot", "strike", "maturity", "rate", "multiplier",
+    "discountCertPrice", "discountPercentage", "maxPayout", "discountBreakeven", "maxReturn"
+  ];
+
+  const bonusIds = [
+    "spot", "strike", "maturity", "rate", "multiplier",
+    "bonusCertPrice", "bonusLevel", "bonusBarrier", "bonusMaxProfit", "bonusProtection"
   ];
 
   const els = {};
-  const charts = {};
+  let charts = {};
+  let currentInstrument = "options";
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   const BLUE = "#12436C";
   const RED = "#D1A08E";
@@ -63,9 +51,19 @@
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
-    ids.forEach((id) => {
-      els[id] = document.getElementById(id);
+    // Initialize all element IDs
+    [...optionsIds, ...bondsIds, ...turboIds, ...discountIds, ...bonusIds].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) els[id] = el;
     });
+
+    // Handle instrument change
+    const instrumentSelect = document.getElementById("instrumentSelect");
+    if (instrumentSelect) {
+      instrumentSelect.addEventListener("change", (e) => {
+        switchInstrument(e.target.value);
+      });
+    }
 
     if (window.Chart) {
       Chart.register(atmLinePlugin);
@@ -95,6 +93,53 @@
     update();
   }
 
+  function switchInstrument(instrument) {
+    currentInstrument = instrument;
+
+    // Hide all sections
+    document.querySelectorAll(".instrument-section").forEach((section) => {
+      section.style.display = "none";
+    });
+
+    // Show selected section
+    const section = document.querySelector(`[data-instrument="${instrument}"]`);
+    if (section) {
+      section.style.display = "block";
+    }
+
+    // Update sidebar based on instrument
+    updateSidebarForInstrument(instrument);
+
+    // Reset charts
+    Object.values(charts).forEach((chart) => {
+      if (chart && typeof chart.destroy === "function") {
+        chart.destroy();
+      }
+    });
+    charts = {};
+
+    update();
+  }
+
+  function updateSidebarForInstrument(instrument) {
+    // Show/hide sidebar sections based on instrument
+    const params = document.querySelector(".sidebar-section");
+    if (!params) return;
+
+    const heading = params.querySelector(".sidebar-heading h1");
+    const descriptions = {
+      options: "Parameters",
+      bonds: "Bond Parameters",
+      turbo: "Turbo Parameters",
+      discount: "Certificate Parameters",
+      bonus: "Certificate Parameters"
+    };
+
+    if (heading) {
+      heading.textContent = descriptions[instrument] || "Parameters";
+    }
+  }
+
   function readState() {
     const maturity = parseDate(els.maturity.value);
     const today = new Date();
@@ -119,16 +164,30 @@
       lots: Math.max(parseNumber(els.lots.value, 1), 0),
       multiplier: Math.max(parseNumber(els.multiplier.value, 100), 0),
       tick: Math.max(parseNumber(els.tick.value, 0.01), 0.000001),
-      optionType: els.optionType.value === "put" ? "put" : "call",
+      optionType: els.optionType ? (els.optionType.value === "put" ? "put" : "call") : "call",
       spotMovePct: parseNumber(els.spotMove.value, 1),
       ivMove: Math.max(parseNumber(els.ivMove.value, parseNumber(els.vol.value, 20)) / 100, 0.0001),
-      spotChartMetric: els.spotChartMetric.value,
-      axisChartMetric: els.axisChartMetric.value,
-      axisChartVariable: els.axisChartVariable.value
+      spotChartMetric: els.spotChartMetric ? els.spotChartMetric.value : "price",
+      axisChartMetric: els.axisChartMetric ? els.axisChartMetric.value : "price",
+      axisChartVariable: els.axisChartVariable ? els.axisChartVariable.value : "vol"
     };
   }
 
   function update() {
+    if (currentInstrument === "options") {
+      updateOptions();
+    } else if (currentInstrument === "bonds") {
+      updateBonds();
+    } else if (currentInstrument === "turbo") {
+      updateTurbo();
+    } else if (currentInstrument === "discount") {
+      updateDiscountCert();
+    } else if (currentInstrument === "bonus") {
+      updateBonusCert();
+    }
+  }
+
+  function updateOptions() {
     const state = readState();
     const result = blackScholes(state, state.optionType);
     const unit = result.greeks;
@@ -172,6 +231,118 @@
 
     updateExercise(result, state);
     updateCharts(state);
+  }
+
+  function updateBonds() {
+    const state = readState();
+    const spotPrice = parseNumber(els.spot.value, 100);
+    const ytmVal = parseNumber(els.rate.value, 5) / 100;
+    
+    // Simple bond pricing
+    const couponRate = 0.05; // 5% coupon
+    const parValue = 100;
+    const couponPayment = parValue * couponRate;
+    const periods = Math.round(state.t * 2); // Semi-annual coupons
+    const ytmPeriod = ytmVal / 2;
+    
+    // Calculate bond price
+    let dirtyPriceVal = 0;
+    for (let i = 1; i <= periods; i++) {
+      dirtyPriceVal += couponPayment / 2 / Math.pow(1 + ytmPeriod, i);
+    }
+    dirtyPriceVal += parValue / Math.pow(1 + ytmPeriod, periods);
+    
+    // Accrued interest (simplified)
+    const accruedVal = (couponPayment / 2) * (Math.random() * 0.5);
+    const cleanPriceVal = dirtyPriceVal - accruedVal;
+    
+    // Modified duration
+    const duration = state.t * 0.75; // Simplified
+    const modDurationVal = duration / (1 + ytmVal);
+
+    if (els.dirtyPrice) els.dirtyPrice.textContent = formatNumber(dirtyPriceVal, 2);
+    if (els.cleanPrice) els.cleanPrice.textContent = formatNumber(cleanPriceVal, 2);
+    if (els.accruedInterest) els.accruedInterest.textContent = formatNumber(accruedVal, 2);
+    if (els.ytm) els.ytm.textContent = formatNumber(ytmVal * 100, 2) + "%";
+    if (els.modDuration) els.modDuration.textContent = formatNumber(modDurationVal, 2);
+
+    updateBondCharts(state, ytmVal);
+  }
+
+  function updateTurbo() {
+    const state = readState();
+    const spotPrice = state.spot;
+    const strikePrice = state.strike; // Barrier level
+    
+    // Turbo pricing - simplified model
+    const intrinsicValue = Math.max(spotPrice - strikePrice, 0);
+    const leverage = spotPrice / (spotPrice - strikePrice + 0.5);
+    const distanceToBrier = ((spotPrice - strikePrice) / spotPrice) * 100;
+    
+    // Daily financing cost
+    const dailyRate = (state.rate + 1.5) / 100 / 365; // Assume 1.5% spread
+    const positionValue = state.spot * state.lots * state.multiplier;
+    const dailyFinancingCost = positionValue * dailyRate;
+    
+    const turboPrice = intrinsicValue + 0.1; // Simplified - add a small spread
+
+    if (els.turboPrice) els.turboPrice.textContent = formatNumber(turboPrice, 5);
+    if (els.leverage) els.leverage.textContent = formatNumber(leverage, 2) + "x";
+    if (els.distanceBarrier) els.distanceBarrier.textContent = formatNumber(distanceToBrier, 2) + "%";
+    if (els.dailyFinancing) els.dailyFinancing.textContent = formatNumber(dailyFinancingCost, 4);
+    if (els.positionExposure) els.positionExposure.textContent = formatNumber(positionValue, 2);
+
+    updateTurboCharts(state);
+  }
+
+  function updateDiscountCert() {
+    const state = readState();
+    const spotPrice = state.spot;
+    const strikePrice = state.strike; // Cap level
+    const capLevel = strikePrice * 1.13; // 13% cap above strike
+    
+    // Certificate pricing
+    const discount = (strikePrice - spotPrice) / strikePrice;
+    const maxPayoff = capLevel;
+    const breakeven = spotPrice * (1 - discount);
+    const maxReturn = (capLevel - spotPrice) / spotPrice * 100;
+    
+    // Simple pricing using call option value
+    const callValue = blackScholes(state, "call").price;
+    const certPrice = spotPrice * (1 - discount) + callValue * 0.5;
+
+    if (els.discountCertPrice) els.discountCertPrice.textContent = formatNumber(certPrice, 4);
+    if (els.discountPercentage) els.discountPercentage.textContent = formatNumber(discount * 100, 2) + "%";
+    if (els.maxPayout) els.maxPayout.textContent = formatNumber(maxPayoff, 2);
+    if (els.discountBreakeven) els.discountBreakeven.textContent = formatNumber(breakeven, 2);
+    if (els.maxReturn) els.maxReturn.textContent = formatNumber(maxReturn, 2) + "%";
+
+    updateCertificateCharts(state, "discount");
+  }
+
+  function updateBonusCert() {
+    const state = readState();
+    const spotPrice = state.spot;
+    const strikePrice = state.strike;
+    const bonusLevel = strikePrice * 1.25; // 25% bonus above strike
+    const barrier = strikePrice * 0.75; // 25% barrier below strike
+    
+    // Certificate pricing
+    const maxProfit = (bonusLevel - spotPrice) / spotPrice * 100;
+    const protection = barrier / strikePrice * 100;
+    
+    // Simple pricing
+    const callValue = blackScholes(state, "call").price;
+    const putValue = blackScholes(state, "put").price;
+    const certPrice = spotPrice + (callValue * 0.6 - putValue * 0.4);
+
+    if (els.bonusCertPrice) els.bonusCertPrice.textContent = formatNumber(certPrice, 4);
+    if (els.bonusLevel) els.bonusLevel.textContent = formatNumber(bonusLevel, 2);
+    if (els.bonusBarrier) els.bonusBarrier.textContent = formatNumber(barrier, 2);
+    if (els.bonusMaxProfit) els.bonusMaxProfit.textContent = formatNumber(maxProfit, 2) + "%";
+    if (els.bonusProtection) els.bonusProtection.textContent = formatNumber(protection, 2) + "%";
+
+    updateCertificateCharts(state, "bonus");
   }
 
   function blackScholes(input, optionType) {
@@ -592,6 +763,208 @@
     return String(value)
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (letter) => letter.toUpperCase());
+  }
+
+  function updateBondCharts(state, ytm) {
+    if (!window.Chart) return;
+
+    const ytmls = range(ytm * 0.7, ytm * 1.3, 40);
+    const parValue = 100;
+    const couponRate = 0.05;
+
+    // Bond price vs YTM
+    const priceData = ytmls.map((y) => {
+      const periods = Math.round(state.t * 2);
+      const yPeriod = y / 2;
+      let price = 0;
+      for (let i = 1; i <= periods; i++) {
+        price += (parValue * couponRate / 2) / Math.pow(1 + yPeriod, i);
+      }
+      price += parValue / Math.pow(1 + yPeriod, periods);
+      return { x: y * 100, y: price };
+    });
+
+    drawChart("bondPriceChart", [{
+      label: "Bond Price",
+      data: priceData,
+      borderColor: BLUE,
+      backgroundColor: BLUE,
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3
+    }], {
+      xTitle: "YTM (%)",
+      yTitle: "Price",
+      xValue: ytm * 100,
+      label: "Current YTM"
+    });
+
+    // Cash flows chart
+    const periods = Math.round(state.t * 2);
+    const cashFlows = [];
+    for (let i = 1; i <= periods; i++) {
+      cashFlows.push({
+        x: i * 0.5,
+        y: (parValue * couponRate / 2) + (i === periods ? parValue : 0)
+      });
+    }
+
+    drawChart("cashFlowChart", [{
+      label: "Cash Flow",
+      data: cashFlows,
+      borderColor: GREEN,
+      backgroundColor: GREEN,
+      pointRadius: 4,
+      borderWidth: 2
+    }], {
+      xTitle: "Time (years)",
+      yTitle: "Cash Flow"
+    });
+  }
+
+  function updateTurboCharts(state) {
+    if (!window.Chart) return;
+
+    const spots = range(state.strike * 0.8, state.strike * 1.5, 45);
+
+    // Turbo price evolution
+    const priceData = spots.map((spot) => ({
+      x: spot,
+      y: Math.max(spot - state.strike, 0) + 0.1
+    }));
+
+    drawChart("turboPriceChart", [{
+      label: "Turbo Price",
+      data: priceData,
+      borderColor: BLUE,
+      backgroundColor: BLUE,
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3
+    }], {
+      xTitle: "Underlying Spot",
+      yTitle: "Turbo Price",
+      xValue: state.spot,
+      label: "Current"
+    });
+
+    // Turbo payoff
+    const payoffData = spots.map((spot) => ({
+      x: spot,
+      y: Math.max(spot - state.strike, -100) * state.lots * state.multiplier / 100
+    }));
+
+    drawChart("turboPayoffChart", [{
+      label: "Long Payoff",
+      data: payoffData,
+      borderColor: GREEN,
+      backgroundColor: "rgba(169, 208, 142, 0.2)",
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3,
+      fill: true
+    }], {
+      xTitle: "Underlying Spot",
+      yTitle: "P&L"
+    });
+  }
+
+  function updateCertificateCharts(state, type) {
+    if (!window.Chart) return;
+
+    const spots = range(state.strike * 0.6, state.strike * 1.4, 45);
+
+    if (type === "discount") {
+      const capLevel = state.strike * 1.13;
+      
+      // Payoff
+      const payoffData = spots.map((spot) => ({
+        x: spot,
+        y: Math.min(spot, capLevel)
+      }));
+
+      drawChart("discountPayoffChart", [{
+        label: "Payoff at Maturity",
+        data: payoffData,
+        borderColor: BLUE,
+        backgroundColor: BLUE,
+        pointRadius: 0,
+        borderWidth: 2,
+        tension: 0.3
+      }], {
+        xTitle: "Underlying at Maturity",
+        yTitle: "Certificate Payoff"
+      });
+
+      // P&L
+      const pnlData = spots.map((spot) => ({
+        x: spot,
+        y: Math.min(spot, capLevel) - state.spot
+      }));
+
+      drawChart("discountProfitChart", [{
+        label: "Profit/Loss",
+        data: pnlData,
+        borderColor: RED,
+        backgroundColor: "rgba(209, 160, 142, 0.2)",
+        pointRadius: 0,
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      }], {
+        xTitle: "Underlying at Maturity",
+        yTitle: "P&L"
+      });
+    } else if (type === "bonus") {
+      const bonusLevel = state.strike * 1.25;
+      const barrier = state.strike * 0.75;
+      
+      // Payoff
+      const payoffData = spots.map((spot) => {
+        if (spot < barrier) {
+          return { x: spot, y: spot };
+        }
+        return { x: spot, y: Math.min(spot, bonusLevel) + (bonusLevel - state.strike) * 0.5 };
+      });
+
+      drawChart("bonusPayoffChart", [{
+        label: "Payoff at Maturity",
+        data: payoffData,
+        borderColor: BLUE,
+        backgroundColor: BLUE,
+        pointRadius: 0,
+        borderWidth: 2,
+        tension: 0.3
+      }], {
+        xTitle: "Underlying at Maturity",
+        yTitle: "Certificate Payoff"
+      });
+
+      // P&L
+      const pnlData = spots.map((spot) => {
+        let payoff;
+        if (spot < barrier) {
+          payoff = spot;
+        } else {
+          payoff = Math.min(spot, bonusLevel) + (bonusLevel - state.strike) * 0.5;
+        }
+        return { x: spot, y: payoff - state.spot };
+      });
+
+      drawChart("bonusProfitChart", [{
+        label: "Profit/Loss",
+        data: pnlData,
+        borderColor: RED,
+        backgroundColor: "rgba(209, 160, 142, 0.2)",
+        pointRadius: 0,
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      }], {
+        xTitle: "Underlying at Maturity",
+        yTitle: "P&L"
+      });
+    }
   }
 
   const atmLinePlugin = {
